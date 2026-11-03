@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GeegPay – Learning Project (Test Mode)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#F4F7FA;--card:#fff;--ink:#0E1B2C;--mut:#5D6B7B;--line:#DCE3EA;--brand:#0E1B2C;--accent:#13B79A;--onb:#fff;--warn:#FFE8A3;--warnink:#4A3600;--neg:#B3342F;
+padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--bg:#0A1420;--card:#101F31;--ink:#E7EEF5;--mut:#93A4B5;--line:#223548;--brand:#16314D;--warn:#3D3210;--warnink:#FFE8A3;--neg:#F0827D}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+body::after{content:"TEST MODE";position:fixed;inset:0;display:grid;place-items:center;font:700 min(18vw,150px) Sora,sans-serif;color:var(--ink);opacity:.035;transform:rotate(-20deg);pointer-events:none}
+h1,h2,h3,.logo{font-family:Sora,Inter,sans-serif;letter-spacing:-.02em}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.demo{background:var(--warn);color:var(--warnink);text-align:center;font-size:.85rem;padding:8px 12px;font-weight:500}
+.wrap{max-width:980px;margin:0 auto;padding:0 18px}
+nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;flex-wrap:wrap}
+.logo{font-weight:700;font-size:1.3rem;cursor:pointer}.logo b{color:var(--accent)}
+.links{display:flex;gap:6px;flex-wrap:wrap}
+.links a{padding:8px 12px;border-radius:8px;color:var(--ink);text-decoration:none;font-weight:500;font-size:.95rem}
+.links a:hover,.links a.on{background:var(--line)}
+.btn{background:var(--accent);color:#04251F;border:0;border-radius:10px;padding:12px 20px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block}
+.btn.dark{background:var(--brand);color:var(--onb)}.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn:disabled{opacity:.6}
+.hero{background:var(--brand);color:#fff;border-radius:22px;padding:clamp(28px,6vw,64px);margin:8px 0 24px}
+.hero h1{font-size:clamp(2rem,6vw,3.4rem);line-height:1.08;margin:0 0 14px}
+.hero p{max-width:520px;opacity:.85;margin:0 0 22px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}
+.card h3{margin:0 0 6px;font-size:1.05rem}.card p{margin:0;color:var(--mut)}
+section{margin:30px 0}
+h2{font-size:1.5rem;margin:0 0 14px}
+.bal{background:var(--brand);color:#fff;border-radius:20px;padding:26px;margin-bottom:16px}
+.bal .n{font:700 clamp(2.2rem,8vw,3.2rem) Sora,sans-serif;letter-spacing:-.03em;margin:4px 0}
+.tag{display:inline-block;background:var(--warn);color:var(--warnink);border-radius:99px;padding:2px 10px;font-size:.75rem;font-weight:600}
+label{display:block;font-size:.9rem;font-weight:500;margin:14px 0 4px}
+input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--card)}
+.err{color:var(--neg);font-size:.9rem;min-height:1.3em;margin:8px 0}.ok{color:var(--accent);font-size:.9rem}
+.form{max-width:420px;margin:20px auto}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px;border-bottom:1px solid var(--line)}th{color:var(--mut);font-size:.8rem;text-transform:uppercase}
+.r{text-align:right}.pos{color:#13B79A;font-weight:600}
+.scroll{overflow-x:auto}
+.two{display:grid;gap:16px;grid-template-columns:1fr}@media(min-width:760px){.two{grid-template-columns:1.1fr .9fr}}
+footer{border-top:1px solid var(--line);margin-top:40px;padding:22px 0 30px;color:var(--mut);font-size:.85rem}
+ol{padding-left:20px;margin:0}li{margin:8px 0}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="demo">TEST MODE: GeegPay is a learning project. All balances are test money with no real value, and no real payments are made.</div>
+<div class="wrap">
+<nav><div class="logo" id="lg">Geeg<b>Pay</b></div><div class="links" id="links"></div></nav>
+<main id="view"></main>
+<footer>© GeegPay learning project. Not a bank, not licensed, and not able to hold real money. Test balances are not proof of funds.</footer>
+</div>
+<script>
+// Change this to your backend address (no trailing slash).
+var API="https://geegpay-backend.onrender.com";
+var MAXC=1000000;
+var token=null,me=null,$=function(i){return document.getElementById(i)};
+try{token=sessionStorage.getItem("gp_t")}catch(e){}
+function setTok(t){token=t;try{t?sessionStorage.setItem("gp_t",t):sessionStorage.removeItem("gp_t")}catch(e){}}
+function esc(s){var d=document.createElement("div");d.textContent=s==null?"":String(s);return d.innerHTML}
+function fmt(n){return "$"+Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+async function call(p,m,b){
+  var h={"Content-Type":"application/json"};if(token)h.Authorization="Bearer "+token;
+  var r;try{r=await fetch(API+p,{method:m,headers:h,body:b?JSON.stringify(b):undefined})}
+  catch(e){throw new Error("Can’t reach the server. It may be waking up, so wait a minute and try again.")}
+  var j={};try{j=await r.json()}catch(e){}
+  if(r.status===401&&token){setTok(null);me=null}
+  if(!r.ok)throw new Error(j.error||"Something went wrong.");return j}
+async function run(btn,err,fn){btn.disabled=true;err.textContent="";try{await fn()}catch(e){err.textContent=e.message}btn.disabled=false}
+function nav(r){location.hash=r}
+$("lg").onclick=function(){nav("home")};
+
+var pub={home:1,how:1,security:1,signin:1,register:1};
+function links(r){
+  var l=token?[["dashboard","Dashboard"],["activity","Activity"],["profile","Profile"]]:[["home","Home"],["how","How it works"],["security","Security"]];
+  var h=l.map(function(x){return '<a href="#'+x[0]+'"'+(r===x[0]?' class="on"':'')+'>'+x[1]+'</a>'}).join("");
+  h+=token?'<a href="#" id="so">Sign out</a>':'<a href="#signin">Sign in</a><a href="#register" class="btn" style="padding:8px 14px;color:#04251F">Open account</a>';
+  $("links").innerHTML=h;
+  if(token)$("so").onclick=function(e){e.preventDefault();setTok(null);me=null;nav("home")}}
+async function loadMe(){me=await call("/api/me","GET")}
+async function route(){
+  var r=(location.hash||"#home").slice(1);
+  if(!pub[r]&&r!=="dashboard"&&r!=="activity"&&r!=="profile")r="home";
+  if(!pub[r]&&!token){nav("signin");return}
+  if((r==="signin"||r==="register")&&token){nav("dashboard");return}
+  links(r);window.scrollTo(0,0);
+  var v=$("view");
+  if(r==="home")v.innerHTML=home();
+  else if(r==="how")v.innerHTML=how();
+  else if(r==="security")v.innerHTML=sec();
+  else if(r==="signin"||r==="register")authView(r);
+  else{
+    v.innerHTML='<p class="note">Loading…</p>';
+    try{await loadMe()}catch(e){if(!token){nav("signin");return}v.innerHTML='<div class="card"><p class="err">'+esc(e.message)+'</p></div>';return}
+    if(r==="dashboard")dash();else if(r==="activity")activity();else profile()}}
+window.addEventListener("hashchange",route);
+
+function home(){return '<section class="hero"><span class="tag">Test mode</span><h1 style="margin-top:14px">Money practice, built from scratch.</h1><p>GeegPay is a learning project that shows how an online wallet works: accounts, balances, and activity, with test money only.</p><a class="btn" href="#register">Open a test account</a> <a class="btn ghost" href="#how" style="color:#fff;border-color:#ffffff55">How it works</a></section>'+
+'<section class="grid"><div class="card"><h3>Test accounts</h3><p>Register with your name and email and get a wallet in seconds.</p></div><div class="card"><h3>Add test money</h3><p>Credit your wallet and watch the balance and activity update.</p></div><div class="card"><h3>Clear history</h3><p>Every credit is recorded with a date and an optional note.</p></div></section>'+
+'<section class="card"><h2>Why this exists</h2><p>The goal is to learn the whole process: front end, backend, database, hosting, and email. Real money needs licensing and partners, so this site never handles any.</p></section>'}
+function how(){return '<section><h2>How it works</h2><div class="card"><ol><li>Your browser shows this page from GitHub Pages.</li><li>When you register or sign in, the page calls the backend running on Render.</li><li>The backend checks your details, hashes your password, and stores your account in its database.</li><li>Your balance and activity are read back from the database each time.</li><li>Emails (not switched on yet) would be sent by an email service such as Resend.</li></ol></div></section>'}
+function sec(){return '<section><h2>Security basics</h2><div class="grid"><div class="card"><h3>Hashed passwords</h3><p>Passwords are never stored as plain text.</p></div><div class="card"><h3>Signed sessions</h3><p>Sign-ins use short-lived tokens that expire after 2 hours.</p></div><div class="card"><h3>Limits</h3><p>Rate limiting and input checks slow down abuse. Test credits are capped at '+fmt(MAXC)+' each.</p></div></div><div class="card" style="margin-top:16px"><h3>Not for real money</h3><p>Real financial services need licensing, identity checks, and a regulated payment partner. This project has none of those.</p></div></section>'}
+
+function authView(r){
+  var reg=r==="register";
+  $("view").innerHTML='<div class="card form"><h1 style="font-size:1.6rem;margin:0">'+(reg?"Open a test account":"Sign in")+'</h1>'+
+  (reg?'<label for="n">Full name</label><input id="n" autocomplete="name">':'')+
+  '<label for="e">Email address</label><input id="e" type="email" autocomplete="email">'+
+  '<label for="p">Password'+(reg?' (8+ characters)':'')+'</label><input id="p" type="password" autocomplete="'+(reg?'new':'current')+'-password">'+
+  '<p class="err" id="er" role="alert"></p><button class="btn" id="go" style="width:100%">'+(reg?"Create account":"Sign in")+'</button>'+
+  '<p style="color:var(--mut);font-size:.85rem">'+(reg?'Have an account? <a href="#signin">Sign in</a>':'New here? <a href="#register">Open an account</a>')+'</p>'+
+  (reg?'<p style="color:var(--mut);font-size:.8rem">Use a throwaway password. This is a learning project.</p>':'')+'</div>';
+  $("go").onclick=function(){run($("go"),$("er"),async function(){
+    var b={email:$("e").value,password:$("p").value};if(reg)b.name=$("n").value;
+    var j=await call(reg?"/api/register":"/api/login","POST",b);setTok(j.token);nav("dashboard")})}}
+
+function dash(){
+  $("view").innerHTML='<div class="bal"><span class="tag">Test money</span><div style="margin-top:10px;opacity:.8">Welcome, '+esc(me.name.split(" ")[0])+'</div><div class="n">'+fmt(me.balance)+'</div><div style="opacity:.8">Available test balance</div></div>'+
+  '<div class="two"><div class="card"><h2>Add test money</h2><label for="a">Amount (USD, up to '+fmt(MAXC)+')</label><input id="a" inputmode="decimal" placeholder="0.00"><label for="m">Note (optional)</label><input id="m" maxlength="40"><p class="err" id="er" role="alert"></p><button class="btn" id="ad" style="width:100%">Add test money</button><p class="ok" id="okm"></p></div>'+
+  '<div class="card"><h2>Recent activity</h2><div id="rec"></div><p style="margin:12px 0 0"><a href="#activity">See all activity</a></p></div></div>';
+  $("rec").innerHTML=rows(me.tx.slice(0,5),true);
+  $("ad").onclick=function(){run($("ad"),$("er"),async function(){
+    var n=parseFloat(String($("a").value).replace(/[^0-9.]/g,""));
+    if(!(n>0))throw new Error("Enter an amount greater than 0.");
+    if(n>MAXC)throw new Error("Test credits are limited to "+fmt(MAXC)+" each.");
+    await call("/api/credit","POST",{amount:n,note:$("m").value});
+    await loadMe();dash();$("okm").textContent="Added "+fmt(n)+" of test money."})}}
+function rows(t,small){
+  if(!t.length)return '<p style="color:var(--mut);margin:0">No activity yet.</p>';
+  return '<div class="scroll"><table><thead><tr><th>Date</th><th>Details</th><th class="r">Amount</th></tr></thead><tbody>'+t.map(function(x){
+    var d=new Date(String(x.created_at).replace(" ","T")+"Z");
+    return '<tr><td>'+esc(d.toLocaleDateString()+(small?"":" "+d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})))+'</td><td>Test credit'+(x.note?" – "+esc(x.note):"")+'</td><td class="r pos">+'+fmt(x.amount_cents/100)+'</td></tr>'}).join("")+'</tbody></table></div>'}
+function activity(){$("view").innerHTML='<section><h2>Activity</h2><div class="card">'+rows(me.tx,false)+'</div><p style="color:var(--mut);font-size:.85rem">Showing your latest 20 test credits.</p></section>'}
+function profile(){$("view").innerHTML='<section><h2>Profile</h2><div class="card"><p style="color:var(--mut);margin:0">Name</p><p style="margin:0 0 14px;font-weight:600">'+esc(me.name)+'</p><p style="color:var(--mut);margin:0">Email</p><p style="margin:0 0 14px;font-weight:600">'+esc(me.email)+'</p><p style="color:var(--mut);margin:0">Test balance</p><p style="margin:0;font-weight:600">'+fmt(me.balance)+'</p></div><p style="color:var(--mut);font-size:.85rem">Password changes and email alerts aren’t built yet. They are the next things to learn.</p></section>'}
+route();
+</script>
+</body>
+</html>
